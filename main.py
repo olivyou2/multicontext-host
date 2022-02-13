@@ -46,6 +46,7 @@ class ContextHost:
                     try:
                         item = json.loads(src)
                         operate_type = item["type"]
+
                         print(f"[{datetime.now()}] Call Request, Type : {operate_type}")
 
                         if (operate_type == "terminate"):
@@ -55,18 +56,28 @@ class ContextHost:
                         elif (operate_type == "execute"):
                             func_src = item["source"]
                             func_name = item["name"]
-                            func_arg = item["arg"]
 
-                            stt = time()
-                            exec(func_src)
-                            execute_src = f"{func_name}(None, func_arg)"
-                            res = eval(execute_src)
+                            executes = item["executes"]
+                            resultset = list()
 
-                            res_json = json.dumps(res) + "\r\n"
+                            print(f"[{datetime.now()}] Execute instructions : {len(executes)}")
+                            
+                            for execute in executes:
+                                func_arg = execute["arg"]
+
+                                stt = time()
+                                exec(func_src)
+                                execute_src = f"{func_name}(None, func_arg)"
+                                res = eval(execute_src)
+                                resultset.append(res)
+
+                                edd = time()
+
+                                #print(f"[{datetime.now()}] Done. elapsed : {(edd-stt)*1000}ms")
+                            
+                            res_json = json.dumps(resultset) + "\r\n"
                             client.send(res_json.encode())
-                            edd = time()
-
-                            print(f"[{datetime.now()}] Done. elapsed : {(edd-stt)*1000}ms")
+                                
                     except Exception as e:
                         client.send((str(e) + "\r\n").encode())
 
